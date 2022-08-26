@@ -14,11 +14,10 @@ declare(strict_types=1);
 namespace Overblog\DataLoaderBundle;
 
 use LogicException;
-use Overblog\DataLoader\DataLoader;
-use Overblog\DataLoader\DataLoaderInterface;
 use Overblog\DataLoader\Option;
 use Overblog\DataLoaderBundle\Attribute\AsDataLoader;
 use Overblog\DataLoaderBundle\DependencyInjection\OverblogDataLoaderExtension;
+use ReflectionClass;
 use Symfony\Component\DependencyInjection\ChildDefinition;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -40,7 +39,7 @@ final class OverblogDataLoaderBundle extends Bundle
     {
         $container->registerAttributeForAutoconfiguration(
             AsDataLoader::class,
-            static function (ChildDefinition $definition, AsDataLoader $attribute, \ReflectionClass $reflector): void {
+            static function (ChildDefinition $definition, AsDataLoader $attribute, ReflectionClass $reflector): void {
                 if (!$reflector->implementsInterface(DataLoaderFnInterface::class)) {
                     throw new LogicException(sprintf('Please implement %s', DataLoaderFnInterface::class));
                 }
@@ -83,15 +82,13 @@ final class OverblogDataLoaderBundle extends Bundle
                         ->setPublic(false)
                         ->setArguments([$config]);
 
-                    $container->register($id, DataLoader::class)
-                        ->setPublic(true)
-                        ->addTag('kernel.reset', ['method' => 'clearAll'])
+                    $container->register($id, Factory::class)
                         ->setArguments([
                             $dataLoaderRef,
                             new Reference('overblog_dataloader.webonyx_graphql_sync_promise_adapter'),
                             new Reference($OptionServiceID),
                         ]);
-                    $container->registerAliasForArgument($id, DataLoaderInterface::class, $name);
+                    $container->registerAliasForArgument($id, Factory::class, $name);
                 }
 
                 private function generateDataLoaderOptionServiceIDFromName($name, ContainerBuilder $container): string
@@ -101,7 +98,7 @@ final class OverblogDataLoaderBundle extends Bundle
 
                 private function generateDataLoaderServiceIDFromName($name, ContainerBuilder $container): string
                 {
-                    return sprintf('overblog_dataloader.%s_loader', $container::underscore($name));
+                    return sprintf('overblog_dataloader.%s_loader.factory', $container::underscore($name));
                 }
 
                 public function process(ContainerBuilder $container)
