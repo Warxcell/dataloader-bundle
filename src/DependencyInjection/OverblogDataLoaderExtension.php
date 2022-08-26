@@ -27,7 +27,7 @@ final class OverblogDataLoaderExtension extends Extension
         $configuration = $this->getConfiguration($configs, $container);
         $config = $this->processConfiguration($configuration, $configs);
 
-        $container->setAlias(PromiseAdapterInterface::class, $config['defaults']['promise_adapter']);
+        $container->setAlias(PromiseAdapterInterface::class, $config['promise_adapter']);
     }
 
     public function getAlias(): string
