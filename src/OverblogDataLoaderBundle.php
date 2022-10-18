@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace Overblog\DataLoaderBundle;
 
 use LogicException;
-use Overblog\DataLoader\Option;
 use Overblog\DataLoaderBundle\Attribute\AsDataLoader;
 use Overblog\DataLoaderBundle\DependencyInjection\OverblogDataLoaderExtension;
 use ReflectionClass;
@@ -77,23 +76,14 @@ final class OverblogDataLoaderBundle extends Bundle
                     }
 
                     $id = $this->generateDataLoaderServiceIDFromName($name, $container);
-                    $OptionServiceID = $this->generateDataLoaderOptionServiceIDFromName($name, $container);
-                    $container->register($OptionServiceID, Option::class)
-                        ->setPublic(false)
-                        ->setArguments([$config]);
 
                     $container->register($id, Factory::class)
                         ->setArguments([
                             $dataLoaderRef,
                             new Reference('overblog_dataloader.webonyx_graphql_sync_promise_adapter'),
-                            new Reference($OptionServiceID),
+                            $config,
                         ]);
                     $container->registerAliasForArgument($id, Factory::class, $name);
-                }
-
-                private function generateDataLoaderOptionServiceIDFromName($name, ContainerBuilder $container): string
-                {
-                    return sprintf('%s_option', $this->generateDataLoaderServiceIDFromName($name, $container));
                 }
 
                 private function generateDataLoaderServiceIDFromName($name, ContainerBuilder $container): string

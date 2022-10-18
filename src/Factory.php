@@ -14,13 +14,13 @@ final class Factory
     public function __construct(
         private readonly DataLoaderFnInterface $batchLoadFn,
         private readonly PromiseAdapterInterface $promiseAdapter,
-        private readonly Option $option
+        private readonly array $option
     ) {
     }
 
     public function create(): DataLoaderInterface
     {
-        return new DataLoader($this->batchLoadFn, $this->promiseAdapter, $this->option);
+        return new DataLoader($this->batchLoadFn, $this->promiseAdapter, new Option($this->option));
     }
 }
 
