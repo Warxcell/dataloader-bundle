@@ -23,4 +23,3 @@ final class Factory
         return new DataLoader($this->batchLoadFn, $this->promiseAdapter, new Option($this->option));
     }
 }
-

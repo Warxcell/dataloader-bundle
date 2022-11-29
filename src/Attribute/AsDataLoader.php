@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Overblog\DataLoaderBundle\Attribute;
 
-#[\Attribute(\Attribute::TARGET_CLASS)]
+use Attribute;
+
+#[Attribute(Attribute::TARGET_CLASS)]
 final class AsDataLoader
 {
     public function __construct(
