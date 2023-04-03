@@ -21,12 +21,6 @@ final class Configuration implements ConfigurationInterface
     public function getConfigTreeBuilder(): TreeBuilder
     {
         $treeBuilder = new TreeBuilder('overblog_dataloader');
-        $treeBuilder
-            ->getRootNode()
-            ->children()
-                ->scalarNode('promise_adapter')->isRequired()->end()
-            ->end()
-            ;
 
         return $treeBuilder;
     }

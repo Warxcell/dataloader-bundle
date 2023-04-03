@@ -23,7 +23,7 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Extension\ExtensionInterface;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
-
+use GraphQL\Executor\Promise\PromiseAdapter;
 use function lcfirst;
 use function sprintf;
 
@@ -80,7 +80,7 @@ final class OverblogDataLoaderBundle extends Bundle
                     $container->register($id, Factory::class)
                         ->setArguments([
                             $dataLoaderRef,
-                            new Reference('overblog_dataloader.webonyx_graphql_sync_promise_adapter'),
+                            new Reference(PromiseAdapter::class),
                             $config,
                         ]);
                     $container->registerAliasForArgument($id, Factory::class, $name);
