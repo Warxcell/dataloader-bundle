@@ -17,7 +17,6 @@ use LogicException;
 use Overblog\DataLoaderBundle\Attribute\AsDataLoader;
 use Overblog\DataLoaderBundle\DependencyInjection\OverblogDataLoaderExtension;
 use ReflectionClass;
-use Symfony\Component\DependencyInjection\Argument\ServiceClosureArgument;
 use Symfony\Component\DependencyInjection\ChildDefinition;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -28,7 +27,6 @@ use Symfony\Component\HttpKernel\Bundle\Bundle;
 
 use function lcfirst;
 use function sprintf;
-use function Symfony\Component\DependencyInjection\Loader\Configurator\closure;
 
 final class OverblogDataLoaderBundle extends Bundle
 {
