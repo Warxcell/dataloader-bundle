@@ -14,8 +14,8 @@ namespace Overblog\DataLoaderBundle;
 use GraphQL\Executor\Promise\Promise;
 
 /**
- * @template V
  * @template K
+ * @template V
  */
 interface DataLoaderInterface
 {
