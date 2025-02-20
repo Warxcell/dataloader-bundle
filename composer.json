@@ -36,7 +36,8 @@
     "webonyx/graphql-php": "^15.19"
   },
   "require-dev": {
-    "phpstan/phpstan": "^2.1"
+    "phpstan/phpstan": "^2.1",
+    "react/event-loop": "*"
   },
   "extra": {
     "branch-alias": {
