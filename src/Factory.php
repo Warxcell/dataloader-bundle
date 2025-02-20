@@ -5,28 +5,36 @@ declare(strict_types=1);
 namespace Overblog\DataLoaderBundle;
 
 use Closure;
-use GraphQL\Executor\Promise\Adapter\SyncPromiseAdapter;
+use GraphQL\Executor\Promise\Promise;
 use GraphQL\Executor\Promise\PromiseAdapter;
 use Overblog\DataLoaderBundle\Scheduler\Scheduler;
-use Overblog\DataLoaderBundle\Scheduler\SyncScheduler;
 
+/**
+ * @template K
+ * @template V
+ */
 final readonly class Factory
 {
-    private Scheduler $scheduler;
-
+    /**
+     * @param Closure(K[]): Promise $batchLoadFn
+     * @param PromiseAdapter $promiseAdapter
+     * @param Scheduler $scheduler
+     * @param Closure(K): array-key|null $cacheKeyFn
+     */
     public function __construct(
-        private Closure        $batchLoadFn,
+        private Closure $batchLoadFn,
         private PromiseAdapter $promiseAdapter,
-        private ?Closure       $cacheKeyFn = null,
-    )
-    {
-        if ($this->promiseAdapter instanceof SyncPromiseAdapter) {
-            $this->scheduler = new SyncScheduler();
-        }
+        private Scheduler $scheduler,
+        private ?Closure $cacheKeyFn = null,
+    ) {
     }
 
+    /**
+     * @return DataLoaderInterface<K, V>
+     */
     public function create(): DataLoaderInterface
     {
+        /** @phpstan-ignore-next-line */
         return new DataLoader($this->batchLoadFn, $this->promiseAdapter, $this->scheduler, $this->cacheKeyFn);
     }
 }

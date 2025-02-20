@@ -1,0 +1,18 @@
+includes:
+	- vendor/phpstan/phpstan/conf/bleedingEdge.neon
+
+parameters:
+	reportUnmatchedIgnoredErrors: true
+	checkUninitializedProperties: true
+	level: 10
+	paths:
+		- src
+	tmpDir: .phpstan.cache
+	parallel:
+		processTimeout: 1200.0
+		maximumNumberOfProcesses: 1
+	exceptions:
+		implicitThrows: false
+		check:
+			missingCheckedExceptionInThrows: true
+			tooWideThrowType: true

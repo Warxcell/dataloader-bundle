@@ -1,22 +1,16 @@
 <?php
 
-/*
- * This file is part of the OverblogDataLoaderBundle package.
- *
- * (c) Overblog <http://github.com/overblog/>
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
-
 declare(strict_types=1);
 
 namespace Overblog\DataLoaderBundle;
 
+use Closure;
 use LogicException;
 use Overblog\DataLoaderBundle\Attribute\AsDataLoader;
 use Overblog\DataLoaderBundle\DependencyInjection\OverblogDataLoaderExtension;
+use Overblog\DataLoaderBundle\Scheduler\SyncScheduler;
 use ReflectionClass;
+use Reflector;
 use Symfony\Component\DependencyInjection\ChildDefinition;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -30,7 +24,7 @@ use function sprintf;
 
 final class OverblogDataLoaderBundle extends Bundle
 {
-    public function getContainerExtension(): ?ExtensionInterface
+    public function getContainerExtension(): ExtensionInterface
     {
         return new OverblogDataLoaderExtension();
     }
@@ -39,7 +33,8 @@ final class OverblogDataLoaderBundle extends Bundle
     {
         $container->registerAttributeForAutoconfiguration(
             AsDataLoader::class,
-            static function (ChildDefinition $definition, AsDataLoader $attribute, ReflectionClass $reflector): void {
+            static function (ChildDefinition $definition, AsDataLoader $attribute, Reflector $reflector): void {
+                assert($reflector instanceof ReflectionClass);
                 if (!$reflector->hasMethod('__invoke')) {
                     throw new LogicException('Please implement "__invoke" method',);
                 }
@@ -54,25 +49,30 @@ final class OverblogDataLoaderBundle extends Bundle
 
         $container->addCompilerPass(
             new class implements CompilerPassInterface {
+                /**
+                 * @param ContainerBuilder $container
+                 * @param array{alias: string, cacheKeyFn?: string} $config
+                 * @param string $batchLoadFn
+                 * @return void
+                 */
                 private function registerDataLoader(
                     ContainerBuilder $container,
-                    array            $rawConfig,
-                    string           $batchLoadFn
-                ): void
-                {
-                    $name = $rawConfig['alias'];
+                    array $config,
+                    string $batchLoadFn
+                ): void {
+                    $name = $config['alias'];
 
                     $id = sprintf('overblog_dataloader.%s_loader.factory', $container::underscore($name));
 
-                    $batchLoadFnDef = new Definition(\Closure::class);
-                    $batchLoadFnDef->setFactory([\Closure::class, 'fromCallable']);
+                    $batchLoadFnDef = new Definition(Closure::class);
+                    $batchLoadFnDef->setFactory([Closure::class, 'fromCallable']);
                     $batchLoadFnDef->addArgument(new Reference($batchLoadFn));
 
                     $cacheKeyFnDef = null;
-                    if (isset($rawConfig['cacheKeyFn'])) {
-                        $cacheKeyFnDef = new Definition(\Closure::class);
-                        $cacheKeyFnDef->setFactory([\Closure::class, 'fromCallable']);
-                        $cacheKeyFnDef->addArgument([new Reference($batchLoadFn), $rawConfig['cacheKeyFn']]);
+                    if (isset($config['cacheKeyFn'])) {
+                        $cacheKeyFnDef = new Definition(Closure::class);
+                        $cacheKeyFnDef->setFactory([Closure::class, 'fromCallable']);
+                        $cacheKeyFnDef->addArgument([new Reference($batchLoadFn), $config['cacheKeyFn']]);
                     }
 
 
@@ -80,7 +80,8 @@ final class OverblogDataLoaderBundle extends Bundle
                         ->setArguments([
                             '$batchLoadFn' => $batchLoadFnDef,
                             '$promiseAdapter' => new Reference('overblog_dataloader.promise_adapter'),
-                            '$cacheKeyFn' => $cacheKeyFnDef
+                            '$scheduler' => new Reference(SyncScheduler::class),
+                            '$cacheKeyFn' => $cacheKeyFnDef,
                         ]);
                     $container->registerAliasForArgument($id, Factory::class, $name);
                 }
@@ -91,6 +92,7 @@ final class OverblogDataLoaderBundle extends Bundle
                         foreach ($tags as $attrs) {
                             $this->registerDataLoader(
                                 $container,
+                                /** @phpstan-ignore-next-line */
                                 $attrs,
                                 $id
                             );

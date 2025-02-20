@@ -1,14 +1,5 @@
 <?php
 
-/*
- * This file is part of the DataLoaderPhp package.
- *
- * (c) Overblog <http://github.com/overblog/>
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
-
 namespace Overblog\DataLoaderBundle;
 
 use GraphQL\Executor\Promise\Promise;
@@ -46,12 +37,14 @@ interface DataLoaderInterface
      * Clears the value at `key` from the cache, if it exists.
      *
      * @param K $key
+     * @return $this
      */
     public function clear(mixed $key): self;
 
     /**
      * Clears the entire cache. To be used when some event results in unknown
      * invalidations across this particular `DataLoader`.
+     * @return $this
      */
     public function clearAll(): self;
 
@@ -60,6 +53,7 @@ interface DataLoaderInterface
      * change is made. Returns itself for method chaining.
      * @param K $key
      * @param V $value
+     * @return $this
      */
     public function prime(mixed $key, mixed $value): self;
 }

@@ -10,26 +10,46 @@ use GraphQL\Executor\Promise\PromiseAdapter;
 use Overblog\DataLoaderBundle\Scheduler\Scheduler;
 use function array_map;
 
-class DataLoader implements DataLoaderInterface
+/**
+ * @template K
+ * @template V
+ * @implements DataLoaderInterface<K, V>
+ * @phpstan-type Queue array{resolve: Closure(V): void, reject: Closure(mixed): void}
+ */
+final class DataLoader implements DataLoaderInterface
 {
     /**
-     * @var array<array-key>
+     * @var K[]
      */
     private array $keys = [];
+
+    /**
+     * @var Queue[]
+     */
     private array $queue = [];
 
+    /**
+     * @var array<array-key, Promise>
+     */
     private array $cache = [];
 
+    /**
+     * @var Closure(K): array-key
+     */
     private readonly Closure $cacheKeyFn;
 
+    /**
+     * @param Closure(K[]): Promise $batchLoadFn
+     * @param Closure(K): array-key|null $cacheKeyFn
+     */
     public function __construct(
-        private readonly Closure        $batchLoadFn,
+        private readonly Closure $batchLoadFn,
         private readonly PromiseAdapter $promiseAdapter,
-        private readonly Scheduler      $scheduler,
-        ?Closure                        $cacheKeyFn = null
-    )
-    {
-        $this->cacheKeyFn = $cacheKeyFn ?? fn(string|int $key): string|int => $key;
+        private readonly Scheduler $scheduler,
+        ?Closure $cacheKeyFn = null
+    ) {
+        /** @phpstan-ignore-next-line */
+        $this->cacheKeyFn = $cacheKeyFn ?? fn(mixed $key): string|int => $key;
     }
 
     public function load(mixed $key): Promise
@@ -42,6 +62,7 @@ class DataLoader implements DataLoaderInterface
 
         return $this->promiseAdapter->create(function (callable $resolve, callable $reject) use ($key) {
             $this->keys[] = $key;
+            /** @phpstan-ignore-next-line */
             $this->queue[] = [
                 'resolve' => $resolve,
                 'reject' => $reject,
@@ -63,9 +84,6 @@ class DataLoader implements DataLoaderInterface
         );
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function clear(mixed $key): self
     {
         $cacheKey = ($this->cacheKeyFn)($key);
@@ -83,7 +101,9 @@ class DataLoader implements DataLoaderInterface
 
     public function prime(mixed $key, mixed $value): self
     {
-        $promise = $value instanceof Exception ? $this->promiseAdapter->createRejected($value) : $this->promiseAdapter->createFulfilled($value);
+        $promise = $value instanceof Exception ? $this->promiseAdapter->createRejected(
+            $value
+        ) : $this->promiseAdapter->createFulfilled($value);
 
         $cacheKey = ($this->cacheKeyFn)($key);
         $this->cache[$cacheKey] = $promise;
@@ -103,11 +123,16 @@ class DataLoader implements DataLoaderInterface
 
         $batchPromise
             ->then(
+            /** @phpstan-ignore-next-line */
                 fn($values) => $this->handleSuccessfulDispatch($queue, $values),
                 fn($error) => $this->handleFailedDispatch($keys, $queue, $error)
             );
     }
 
+    /**
+     * @param Queue[] $batch
+     * @param V[] $values
+     */
     private function handleSuccessfulDispatch(array $batch, array $values): void
     {
         foreach ($batch as $index => $queueItem) {
@@ -118,7 +143,12 @@ class DataLoader implements DataLoaderInterface
         }
     }
 
-    private function handleFailedDispatch(array $keys, array $queue, Exception $error): void
+    /**
+     * @param K[] $keys
+     * @param Queue[] $queue
+     * @param mixed $error
+     */
+    private function handleFailedDispatch(array $keys, array $queue, mixed $error): void
     {
         foreach ($keys as $index => $key) {
             // We don't want to cache individual loads if the entire batch dispatch fails.

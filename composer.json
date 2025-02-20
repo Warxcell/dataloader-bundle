@@ -29,15 +29,12 @@
     "sort-packages": true
   },
   "require": {
-    "php": "^8.2"
-  },
-  "require-dev": {
-    "symfony/dependency-injection": "^5.3.7 || ^6.0",
-    "phpunit/phpunit": "^9.5.10",
-    "react/promise": "^2.8.0",
-    "sensio/framework-extra-bundle": "^6.2",
-    "symfony/phpunit-bridge": "^6.0",
-    "symfony/yaml": "^5.3.7 || ^6.0"
+    "php": "^8.2",
+    "phpstan/phpstan": "^2.1",
+    "symfony/config": "*",
+    "symfony/dependency-injection": "*",
+    "symfony/http-kernel": "*",
+    "webonyx/graphql-php": "^15.19"
   },
   "extra": {
     "branch-alias": {

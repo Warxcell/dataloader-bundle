@@ -22,6 +22,7 @@ final class Configuration implements ConfigurationInterface
     public function getConfigTreeBuilder(): TreeBuilder
     {
         $treeBuilder = new TreeBuilder('overblog_dataloader');
+        /** @phpstan-ignore-next-line */
         $treeBuilder
             ->getRootNode()
             ->children()
