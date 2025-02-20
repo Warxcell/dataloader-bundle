@@ -38,7 +38,7 @@ class DataLoader implements DataLoaderInterface
             return $this->cache[$cacheKey];
         }
 
-        return $this->promiseAdapter->create(function (callable $resolve, callable $reject) use ($cacheKey) {
+        return $this->promiseAdapter->create(function (Closure $resolve, Closure $reject) use ($cacheKey) {
             $this->keys[] = $cacheKey;
             $this->queue[] = [
                 'resolve' => $resolve,
