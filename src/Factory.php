@@ -4,22 +4,20 @@ declare(strict_types=1);
 
 namespace Overblog\DataLoaderBundle;
 
-use Overblog\DataLoader\DataLoader;
-use Overblog\DataLoader\DataLoaderInterface;
-use Overblog\DataLoader\Option;
-use Overblog\PromiseAdapter\PromiseAdapterInterface;
+use Closure;
+use GraphQL\Executor\Promise\PromiseAdapter;
 
 final class Factory
 {
     public function __construct(
-        private readonly DataLoaderFnInterface $batchLoadFn,
-        private readonly PromiseAdapterInterface $promiseAdapter,
-        private readonly array $option
-    ) {
+        private readonly Closure       $batchLoadFn,
+        private readonly PromiseAdapter $promiseAdapter,
+    )
+    {
     }
 
     public function create(): DataLoaderInterface
     {
-        return new DataLoader($this->batchLoadFn, $this->promiseAdapter, new Option($this->option));
+        return new DataLoader($this->batchLoadFn, $this->promiseAdapter);
     }
 }

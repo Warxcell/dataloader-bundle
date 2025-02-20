@@ -39,15 +39,12 @@ final class OverblogDataLoaderBundle extends Bundle
         $container->registerAttributeForAutoconfiguration(
             AsDataLoader::class,
             static function (ChildDefinition $definition, AsDataLoader $attribute, ReflectionClass $reflector): void {
-                if (!$reflector->implementsInterface(DataLoaderFnInterface::class)) {
-                    throw new LogicException(sprintf('Please implement %s', DataLoaderFnInterface::class));
+                if (!$reflector->hasMethod('__invoke')) {
+                    throw new LogicException('Please implement "__invoke" method',);
                 }
 
                 $definition->addTag('overblog.dataloader', [
                         'alias' => $attribute->alias ?? lcfirst($reflector->getShortName()),
-                        'maxBatchSize' => $attribute->maxBatchSize,
-                        'batch' => $attribute->batch,
-                        'cache' => $attribute->cache,
                         'cacheKeyFn' => $attribute->cacheKeyFn,
                     ]
                 );
@@ -58,30 +55,20 @@ final class OverblogDataLoaderBundle extends Bundle
             new class implements CompilerPassInterface {
                 private function registerDataLoader(
                     ContainerBuilder $container,
-                    array $rawConfig,
-                    string $batchLoadFn
-                ): void {
+                    array            $rawConfig,
+                    string           $batchLoadFn
+                ): void
+                {
                     $name = $rawConfig['alias'];
                     $dataLoaderRef = new Reference($batchLoadFn);
-                    $config = [];
-
-                    foreach (['batch', 'maxBatchSize', 'cache'] as $key) {
-                        if (isset($rawConfig[$key])) {
-                            $config[$key] = $rawConfig[$key];
-                        }
-                    }
-
-                    if (isset($rawConfig['cacheKeyFn'])) {
-                        $config['cacheKeyFn'] = [$dataLoaderRef, $rawConfig['cacheKeyFn']];
-                    }
 
                     $id = $this->generateDataLoaderServiceIDFromName($name, $container);
 
                     $container->register($id, Factory::class)
                         ->setArguments([
-                            $dataLoaderRef,
-                            new Reference('overblog_dataloader.webonyx_graphql_sync_promise_adapter'),
-                            $config,
+                            '$batchLoadFn' => [$dataLoaderRef, '__invoke'],
+                            '$promiseAdapter' => new Reference('overblog_dataloader.promise_adapter'),
+                            '$cacheKeyFn' => [$dataLoaderRef, $rawConfig['cacheKeyFn']],
                         ]);
                     $container->registerAliasForArgument($id, Factory::class, $name);
                 }
@@ -91,7 +78,7 @@ final class OverblogDataLoaderBundle extends Bundle
                     return sprintf('overblog_dataloader.%s_loader.factory', $container::underscore($name));
                 }
 
-                public function process(ContainerBuilder $container)
+                public function process(ContainerBuilder $container): void
                 {
                     foreach ($container->findTaggedServiceIds('overblog.dataloader') as $id => $tags) {
                         foreach ($tags as $attrs) {

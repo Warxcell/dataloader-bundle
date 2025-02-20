@@ -11,7 +11,6 @@
 
 namespace Overblog\DataLoaderBundle\DependencyInjection;
 
-use Overblog\PromiseAdapter\PromiseAdapterInterface;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
@@ -27,7 +26,7 @@ final class OverblogDataLoaderExtension extends Extension
         $configuration = $this->getConfiguration($configs, $container);
         $config = $this->processConfiguration($configuration, $configs);
 
-        $container->setAlias(PromiseAdapterInterface::class, $config['promise_adapter']);
+        $container->setAlias('overblog_dataloader.promise_adapter', $config['promise_adapter']);
     }
 
     public function getAlias(): string
