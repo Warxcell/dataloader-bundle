@@ -7,6 +7,7 @@ use Exception;
 use GraphQL\Executor\Promise\Promise;
 use GraphQL\Executor\Promise\PromiseAdapter;
 
+use Overblog\DataLoaderBundle\Scheduler\Scheduler;
 use function array_map;
 
 class DataLoader implements DataLoaderInterface
@@ -24,6 +25,7 @@ class DataLoader implements DataLoaderInterface
     public function __construct(
         private readonly Closure        $batchLoadFn,
         private readonly PromiseAdapter $promiseAdapter,
+        private readonly Scheduler      $scheduler,
         ?Closure                        $cacheKeyFn = null
     )
     {
@@ -38,12 +40,16 @@ class DataLoader implements DataLoaderInterface
             return $this->cache[$cacheKey];
         }
 
-        return $this->promiseAdapter->create(function (Closure $resolve, Closure $reject) use ($cacheKey) {
-            $this->keys[] = $cacheKey;
+        return $this->promiseAdapter->create(function (callable $resolve, callable $reject) use ($key) {
+            $this->keys[] = $key;
             $this->queue[] = [
                 'resolve' => $resolve,
                 'reject' => $reject,
             ];
+
+            if (count($this->queue) === 1) {
+                $this->scheduler->scheduleDispatch(fn() => $this->dispatchQueue());
+            }
         });
     }
 

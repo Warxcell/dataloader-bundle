@@ -17,15 +17,18 @@ use LogicException;
 use Overblog\DataLoaderBundle\Attribute\AsDataLoader;
 use Overblog\DataLoaderBundle\DependencyInjection\OverblogDataLoaderExtension;
 use ReflectionClass;
+use Symfony\Component\DependencyInjection\Argument\ServiceClosureArgument;
 use Symfony\Component\DependencyInjection\ChildDefinition;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Extension\ExtensionInterface;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 
 use function lcfirst;
 use function sprintf;
+use function Symfony\Component\DependencyInjection\Loader\Configurator\closure;
 
 final class OverblogDataLoaderBundle extends Bundle
 {
@@ -60,22 +63,28 @@ final class OverblogDataLoaderBundle extends Bundle
                 ): void
                 {
                     $name = $rawConfig['alias'];
-                    $dataLoaderRef = new Reference($batchLoadFn);
 
-                    $id = $this->generateDataLoaderServiceIDFromName($name, $container);
+                    $id = sprintf('overblog_dataloader.%s_loader.factory', $container::underscore($name));
+
+                    $batchLoadFnDef = new Definition(\Closure::class);
+                    $batchLoadFnDef->setFactory([\Closure::class, 'fromCallable']);
+                    $batchLoadFnDef->addArgument(new Reference($batchLoadFn));
+
+                    $cacheKeyFnDef = null;
+                    if (isset($rawConfig['cacheKeyFn'])) {
+                        $cacheKeyFnDef = new Definition(\Closure::class);
+                        $cacheKeyFnDef->setFactory([\Closure::class, 'fromCallable']);
+                        $cacheKeyFnDef->addArgument([new Reference($batchLoadFn), $rawConfig['cacheKeyFn']]);
+                    }
+
 
                     $container->register($id, Factory::class)
                         ->setArguments([
-                            '$batchLoadFn' => [$dataLoaderRef, '__invoke'],
+                            '$batchLoadFn' => $batchLoadFnDef,
                             '$promiseAdapter' => new Reference('overblog_dataloader.promise_adapter'),
-                            '$cacheKeyFn' => [$dataLoaderRef, $rawConfig['cacheKeyFn']],
+                            '$cacheKeyFn' => $cacheKeyFnDef
                         ]);
                     $container->registerAliasForArgument($id, Factory::class, $name);
-                }
-
-                private function generateDataLoaderServiceIDFromName($name, ContainerBuilder $container): string
-                {
-                    return sprintf('overblog_dataloader.%s_loader.factory', $container::underscore($name));
                 }
 
                 public function process(ContainerBuilder $container): void
