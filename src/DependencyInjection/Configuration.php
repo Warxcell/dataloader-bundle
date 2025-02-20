@@ -25,7 +25,7 @@ final class Configuration implements ConfigurationInterface
         $treeBuilder
             ->getRootNode()
             ->children()
-            ->scalarNode('promise_adapter')->defaultValue(PromiseAdapter::class)->isRequired()->end()
+            ->scalarNode('promise_adapter')->defaultValue(PromiseAdapter::class)->end()
             ->end();
 
         return $treeBuilder;
