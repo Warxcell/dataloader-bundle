@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Overblog\DataLoaderBundle\DependencyInjection;
 
+use GraphQL\Executor\Promise\PromiseAdapter;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 
@@ -24,9 +25,8 @@ final class Configuration implements ConfigurationInterface
         $treeBuilder
             ->getRootNode()
             ->children()
-                ->scalarNode('promise_adapter')->isRequired()->end()
-            ->end()
-            ;
+            ->scalarNode('promise_adapter')->defaultValue(PromiseAdapter::class)->isRequired()->end()
+            ->end();
 
         return $treeBuilder;
     }
