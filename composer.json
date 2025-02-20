@@ -29,11 +29,10 @@
     "sort-packages": true
   },
   "require": {
-    "php": "^8.2",
-    "overblog/dataloader-php": "*",
-    "symfony/dependency-injection": "^5.3.7 || ^6.0"
+    "php": "^8.2"
   },
   "require-dev": {
+    "symfony/dependency-injection": "^5.3.7 || ^6.0",
     "phpunit/phpunit": "^9.5.10",
     "react/promise": "^2.8.0",
     "sensio/framework-extra-bundle": "^6.2",
