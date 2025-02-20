@@ -27,6 +27,6 @@ final readonly class Factory
 
     public function create(): DataLoaderInterface
     {
-        return new DataLoader($this->batchLoadFn, $this->promiseAdapter, $this->scheduler, $this->cacheKeyFn,);
+        return new DataLoader($this->batchLoadFn, $this->promiseAdapter, $this->scheduler, $this->cacheKeyFn);
     }
 }

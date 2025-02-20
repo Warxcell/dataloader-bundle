@@ -7,11 +7,11 @@ namespace Overblog\DataLoaderBundle\Attribute;
 use Attribute;
 
 #[Attribute(Attribute::TARGET_CLASS)]
-final class AsDataLoader
+final readonly class AsDataLoader
 {
     public function __construct(
-        public readonly ?string $alias = null,
-        public readonly ?string $cacheKeyFn = null,
+        public ?string $alias = null,
+        public ?string $cacheKeyFn = null,
     )
     {
     }
