@@ -57,9 +57,7 @@ class DataLoader implements DataLoaderInterface
     {
         return $this->promiseAdapter->all(
             array_map(
-                function ($key) {
-                    return $this->load($key);
-                },
+                fn($key) => $this->load($key),
                 $keys
             )
         );
