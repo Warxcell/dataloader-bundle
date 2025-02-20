@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 namespace Overblog\DataLoaderBundle;
 
@@ -9,6 +10,7 @@ use GraphQL\Executor\Promise\PromiseAdapter;
 
 use Overblog\DataLoaderBundle\Scheduler\Scheduler;
 use function array_map;
+use function count;
 
 /**
  * @template K

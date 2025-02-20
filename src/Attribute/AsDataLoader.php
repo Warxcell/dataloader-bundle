@@ -12,7 +12,6 @@ final readonly class AsDataLoader
     public function __construct(
         public ?string $alias = null,
         public ?string $cacheKeyFn = null,
-    )
-    {
+    ) {
     }
 }
